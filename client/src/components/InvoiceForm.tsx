@@ -166,7 +166,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
                   <img
                     src={invoice.fromLogo}
                     alt="Company Logo"
-                    className="w-20 h-20 object-contain border rounded-md"
+                    className="w-24 h-24 object-contain border rounded-md"
                     data-testid="img-company-logo"
                   />
                   <Button
