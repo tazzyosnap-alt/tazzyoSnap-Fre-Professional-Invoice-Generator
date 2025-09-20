@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { X, RotateCcw, Download, Upload, Image } from "lucide-react";
+import { trackSignatureCreated } from "@/lib/analytics";
 
 interface SignatureModalProps {
   isOpen: boolean;
@@ -232,6 +233,9 @@ export function SignatureModal({ isOpen, onClose, onSave, currentSignature }: Si
       alert("Please draw your signature");
       return;
     }
+
+    // Track signature creation
+    trackSignatureCreated();
 
     onSave({ name: name.trim(), image: signature });
     onClose();

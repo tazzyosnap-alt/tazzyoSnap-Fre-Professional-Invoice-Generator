@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import type { Invoice } from "@shared/schema";
+import { trackPDFGeneration } from "@/lib/analytics";
 
 interface PDFGeneratorProps {
   invoice: Invoice;
@@ -105,10 +106,13 @@ export function PDFGenerator({ invoice }: PDFGeneratorProps) {
       const filename = `Invoice-${invoice.invoiceNumber}.pdf`;
       pdf.save(filename);
 
-      toast({
-        title: "PDF Generated",
-        description: `Invoice ${invoice.invoiceNumber} has been downloaded successfully.`,
-      });
+             // Track PDF generation
+             trackPDFGeneration(invoice.invoiceNumber || 'unknown');
+
+             toast({
+               title: "PDF Generated",
+               description: `Invoice ${invoice.invoiceNumber} has been downloaded successfully.`,
+             });
     } catch (error) {
       console.error("Error generating PDF:", error);
       toast({
