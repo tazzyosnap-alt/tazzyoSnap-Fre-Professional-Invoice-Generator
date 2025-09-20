@@ -1,9 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, FileText } from "lucide-react";
+import { Moon, Sun, FileText, LogIn } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import { useAuth } from "@/contexts/AuthContext";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { UserProfile } from "@/components/auth/UserProfile";
+import { useState } from "react";
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
     <header className="border-b bg-card">
@@ -16,18 +22,38 @@ export function Header() {
           <span className="hidden md:block text-sm text-muted-foreground">Fre Professional Invoice Generator</span>
         </div>
         
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          data-testid="button-theme-toggle"
-        >
-          {theme === "light" ? (
-            <Moon className="w-4 h-4" />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            data-testid="button-theme-toggle"
+          >
+            {theme === "light" ? (
+              <Moon className="w-4 h-4" />
+            ) : (
+              <Sun className="w-4 h-4" />
+            )}
+          </Button>
+          
+          {user ? (
+            <UserProfile />
           ) : (
-            <Sun className="w-4 h-4" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsAuthModalOpen(true)}
+            >
+              <LogIn className="w-4 h-4 mr-2" />
+              Sign In
+            </Button>
           )}
-        </Button>
+        </div>
+        
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          onClose={() => setIsAuthModalOpen(false)} 
+        />
       </div>
     </header>
   );

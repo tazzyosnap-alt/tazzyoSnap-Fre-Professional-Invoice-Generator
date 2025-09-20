@@ -5,9 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Upload, X, PenTool } from "lucide-react";
+import { Plus, Trash2, Upload, X, PenTool, Save } from "lucide-react";
 import { CURRENCY_OPTIONS, getCurrencySymbol } from "@/utils/currency";
 import { SignatureModal } from "@/components/SignatureModal";
+import { invoiceService } from "@/lib/supabase-client";
+import { useToast } from "@/hooks/use-toast";
 import type { Invoice, InvoiceItem } from "@shared/schema";
 
 interface InvoiceFormProps {
@@ -18,6 +20,8 @@ interface InvoiceFormProps {
 export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
   
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -62,6 +66,36 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
       signatureName: undefined,
       signatureImage: undefined,
     });
+  };
+
+  // บันทึก invoice ลงฐานข้อมูล
+  const saveInvoice = async () => {
+    if (!invoice.invoiceNumber) {
+      toast({
+        title: "Missing Invoice Number",
+        description: "Please enter an invoice number before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await invoiceService.saveInvoice(invoice);
+      toast({
+        title: "Invoice Saved",
+        description: "Your invoice has been saved successfully.",
+      });
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save invoice. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const updateInvoice = (updates: Partial<Invoice>) => {
@@ -130,10 +164,18 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
   return (
     <div className="space-y-6 p-6 overflow-y-auto">
       {/* Invoice Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Invoice Details</CardTitle>
-        </CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+            <CardTitle>Invoice Details</CardTitle>
+            <Button 
+              onClick={saveInvoice} 
+              disabled={isSaving || !invoice.invoiceNumber}
+              size="sm"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? "Saving..." : "Save Invoice"}
+            </Button>
+          </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="invoiceNumber">Invoice Number</Label>

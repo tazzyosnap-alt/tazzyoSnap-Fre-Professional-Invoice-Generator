@@ -15,9 +15,13 @@ export const invoiceService = {
   // Save invoice to database
   async saveInvoice(invoice: any) {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      
       const { data, error } = await supabase
         .from('invoices')
         .insert({
+          user_id: user?.id || null,
           invoice_number: invoice.invoiceNumber,
           date: invoice.date,
           due_date: invoice.dueDate,
