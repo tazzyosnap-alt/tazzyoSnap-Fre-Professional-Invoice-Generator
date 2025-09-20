@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Upload, X } from "lucide-react";
+import { CURRENCY_OPTIONS, getCurrencySymbol } from "@/utils/currency";
 import type { Invoice, InvoiceItem } from "@shared/schema";
 
 interface InvoiceFormProps {
@@ -13,6 +15,39 @@ interface InvoiceFormProps {
 }
 
 export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        alert('Logo file size must be less than 2MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        updateInvoice({ fromLogo: result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const removeLogo = () => {
+    setLogoFile(null);
+    updateInvoice({ fromLogo: undefined });
+    // Reset the file input
+    const fileInput = document.getElementById('logo-upload') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
   const updateInvoice = (updates: Partial<Invoice>) => {
     const updatedInvoice = { ...invoice, ...updates };
     
@@ -76,6 +111,24 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
             />
           </div>
           <div>
+            <Label htmlFor="currency">Currency</Label>
+            <Select
+              value={invoice.currency}
+              onValueChange={(value) => updateInvoice({ currency: value })}
+            >
+              <SelectTrigger data-testid="select-currency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCY_OPTIONS.map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.symbol} {currency.code} - {currency.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <Label htmlFor="date">Date</Label>
             <Input
               id="date"
@@ -103,16 +156,66 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
         <CardHeader>
           <CardTitle>From (Your Business)</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-4">
+          {/* Company Logo Upload */}
           <div>
-            <Label htmlFor="fromName">Business Name</Label>
-            <Input
-              id="fromName"
-              value={invoice.fromName}
-              onChange={(e) => updateInvoice({ fromName: e.target.value })}
-              data-testid="input-from-name"
-            />
+            <Label>Company Logo</Label>
+            <div className="mt-2">
+              {invoice.fromLogo ? (
+                <div className="flex items-start gap-4">
+                  <img
+                    src={invoice.fromLogo}
+                    alt="Company Logo"
+                    className="w-20 h-20 object-contain border rounded-md"
+                    data-testid="img-company-logo"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={removeLogo}
+                    data-testid="button-remove-logo"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    id="logo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    data-testid="input-logo-upload"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('logo-upload')?.click()}
+                    data-testid="button-upload-logo"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Logo
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    PNG, JPG up to 2MB. Recommended: 200x80px
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
+          
+          {/* Business Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="fromName">Business Name</Label>
+              <Input
+                id="fromName"
+                value={invoice.fromName}
+                onChange={(e) => updateInvoice({ fromName: e.target.value })}
+                data-testid="input-from-name"
+              />
+            </div>
           <div>
             <Label htmlFor="fromEmail">Email</Label>
             <Input
@@ -158,6 +261,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
               onChange={(e) => updateInvoice({ fromCountry: e.target.value })}
               data-testid="input-from-country"
             />
+          </div>
           </div>
         </CardContent>
       </Card>
@@ -261,7 +365,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
                 />
               </div>
               <div className="col-span-2">
-                <Label>Rate ($)</Label>
+                <Label>Rate ({getCurrencySymbol(invoice.currency)})</Label>
                 <Input
                   type="number"
                   min="0"
@@ -272,7 +376,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
                 />
               </div>
               <div className="col-span-2">
-                <Label>Amount ($)</Label>
+                <Label>Amount ({getCurrencySymbol(invoice.currency)})</Label>
                 <Input
                   type="number"
                   value={item.amount.toFixed(2)}
@@ -318,7 +422,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
           <div>
             <Label>Subtotal</Label>
             <Input
-              value={`$${invoice.subtotal.toFixed(2)}`}
+              value={`${getCurrencySymbol(invoice.currency)}${invoice.subtotal.toFixed(2)}`}
               readOnly
               className="bg-muted"
               data-testid="text-subtotal"
@@ -327,7 +431,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
           <div>
             <Label>Tax Amount</Label>
             <Input
-              value={`$${invoice.taxAmount.toFixed(2)}`}
+              value={`${getCurrencySymbol(invoice.currency)}${invoice.taxAmount.toFixed(2)}`}
               readOnly
               className="bg-muted"
               data-testid="text-tax-amount"
@@ -336,7 +440,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
           <div>
             <Label>Total</Label>
             <Input
-              value={`$${invoice.total.toFixed(2)}`}
+              value={`${getCurrencySymbol(invoice.currency)}${invoice.total.toFixed(2)}`}
               readOnly
               className="bg-muted font-semibold"
               data-testid="text-total"

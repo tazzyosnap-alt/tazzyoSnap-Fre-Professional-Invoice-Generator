@@ -9,6 +9,7 @@ const initialInvoice: Invoice = {
   invoiceNumber: "",
   date: new Date().toISOString().split('T')[0],
   dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+  currency: "USD",
   fromName: "",
   fromEmail: "",
   fromAddress: "",

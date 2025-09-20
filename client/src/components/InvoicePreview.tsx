@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import { Card } from "@/components/ui/card";
+import { getCurrencySymbol } from "@/utils/currency";
 import type { Invoice } from "@shared/schema";
 
 interface InvoicePreviewProps {
@@ -17,8 +18,18 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
           data-testid="invoice-preview"
         >
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">INVOICE</h1>
+          <div className="mb-8 flex justify-between items-start">
+            <div className="flex items-center gap-4">
+              {invoice.fromLogo && (
+                <img
+                  src={invoice.fromLogo}
+                  alt="Company Logo"
+                  className="w-24 h-16 object-contain"
+                  data-testid="preview-company-logo"
+                />
+              )}
+              <h1 className="text-3xl font-bold text-foreground">INVOICE</h1>
+            </div>
             <div className="text-right">
               <p className="text-sm text-muted-foreground">
                 Invoice #: <span className="font-semibold text-foreground">{invoice.invoiceNumber}</span>
@@ -77,8 +88,8 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
                     <tr key={item.id} className="border-t border-border">
                       <td className="p-3 text-foreground">{item.description}</td>
                       <td className="p-3 text-center text-muted-foreground">{item.quantity}</td>
-                      <td className="p-3 text-right text-muted-foreground">${item.rate.toFixed(2)}</td>
-                      <td className="p-3 text-right font-semibold text-foreground">${item.amount.toFixed(2)}</td>
+                      <td className="p-3 text-right text-muted-foreground">{getCurrencySymbol(invoice.currency)}{item.rate.toFixed(2)}</td>
+                      <td className="p-3 text-right font-semibold text-foreground">{getCurrencySymbol(invoice.currency)}{item.amount.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -91,17 +102,17 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
             <div className="w-full max-w-sm space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal:</span>
-                <span className="font-semibold text-foreground">${invoice.subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-foreground">{getCurrencySymbol(invoice.currency)}{invoice.subtotal.toFixed(2)}</span>
               </div>
               {invoice.taxRate > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tax ({invoice.taxRate}%):</span>
-                  <span className="font-semibold text-foreground">${invoice.taxAmount.toFixed(2)}</span>
+                  <span className="font-semibold text-foreground">{getCurrencySymbol(invoice.currency)}{invoice.taxAmount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold border-t border-border pt-2">
                 <span className="text-foreground">Total:</span>
-                <span className="text-foreground">${invoice.total.toFixed(2)}</span>
+                <span className="text-foreground">{getCurrencySymbol(invoice.currency)}{invoice.total.toFixed(2)}</span>
               </div>
             </div>
           </div>

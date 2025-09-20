@@ -31,6 +31,7 @@ export const invoiceSchema = z.object({
   invoiceNumber: z.string(),
   date: z.string(),
   dueDate: z.string(),
+  currency: z.string().default("USD"),
   
   // From (sender) details
   fromName: z.string(),
@@ -39,6 +40,7 @@ export const invoiceSchema = z.object({
   fromCity: z.string(),
   fromPostalCode: z.string(),
   fromCountry: z.string(),
+  fromLogo: z.string().optional(), // Base64 encoded logo
   
   // To (recipient) details
   toName: z.string(),
