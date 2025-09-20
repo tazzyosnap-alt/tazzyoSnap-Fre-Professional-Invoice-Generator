@@ -11,9 +11,9 @@ export const isSupabaseConfigured = () => {
   return import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
 }
 
-// Check if Supabase features should be enabled (always true for demo)
+// Check if Supabase features should be enabled
 export const isSupabaseEnabled = () => {
-  return true // Always show Supabase features for demo purposes
+  return isSupabaseConfigured() // Only show when properly configured
 }
 
 // Invoice functions

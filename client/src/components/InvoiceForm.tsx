@@ -89,8 +89,8 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
     } catch (error) {
       console.error("Error saving invoice:", error);
       toast({
-        title: "Demo Mode",
-        description: "This is a demo version. To save invoices permanently, please set up Supabase.",
+        title: "Error",
+        description: "Failed to save invoice. Please try again.",
         variant: "destructive",
       });
     } finally {
