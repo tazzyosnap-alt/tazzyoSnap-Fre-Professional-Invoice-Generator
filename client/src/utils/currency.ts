@@ -23,6 +23,7 @@ export const CURRENCY_OPTIONS = [
   { code: "MXN", symbol: "$", name: "Mexican Peso" },
   { code: "ZAR", symbol: "R", name: "South African Rand" },
   { code: "NZD", symbol: "NZ$", name: "New Zealand Dollar" },
+  { code: "THB", symbol: "฿", name: "Thai Baht" },
 ];
 
 export const getCurrencySymbol = (currencyCode: string): string => {

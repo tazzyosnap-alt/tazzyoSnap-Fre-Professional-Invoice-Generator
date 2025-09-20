@@ -19,18 +19,20 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
         >
           {/* Header */}
           <div className="mb-8 flex justify-between items-start">
-            <div className="flex items-center gap-4">
-              {invoice.fromLogo && (
-                <img
-                  src={invoice.fromLogo}
-                  alt="Company Logo"
-                  className="w-24 h-16 object-contain"
-                  data-testid="preview-company-logo"
-                />
-              )}
+            <div>
               <h1 className="text-3xl font-bold text-foreground">INVOICE</h1>
             </div>
             <div className="text-right">
+              {invoice.fromLogo && (
+                <div className="mb-4 flex justify-end">
+                  <img
+                    src={invoice.fromLogo}
+                    alt="Company Logo"
+                    className="w-24 h-16 object-contain"
+                    data-testid="preview-company-logo"
+                  />
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">
                 Invoice #: <span className="font-semibold text-foreground">{invoice.invoiceNumber}</span>
               </p>
