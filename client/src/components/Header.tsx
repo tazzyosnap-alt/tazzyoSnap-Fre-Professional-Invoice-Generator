@@ -13,7 +13,7 @@ export function Header() {
             <FileText className="w-4 h-4" />
           </div>
           <h1 className="text-xl font-semibold text-foreground">TazzyoSnap</h1>
-          <span className="text-sm text-muted-foreground">Professional Invoice Generator</span>
+          <span className="hidden md:block text-sm text-muted-foreground">Fre Professional Invoice Generator</span>
         </div>
         
         <Button

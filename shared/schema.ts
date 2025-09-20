@@ -63,6 +63,10 @@ export const invoiceSchema = z.object({
   // Optional fields
   notes: z.string().optional(),
   terms: z.string().optional(),
+  
+  // Signature fields
+  signatureName: z.string().optional(),
+  signatureImage: z.string().optional(), // Base64 encoded signature
 });
 
 export type InvoiceItem = z.infer<typeof invoiceItemSchema>;

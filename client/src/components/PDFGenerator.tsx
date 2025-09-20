@@ -26,19 +26,55 @@ export function PDFGenerator({ invoice }: PDFGeneratorProps) {
 
     setIsGenerating(true);
 
+    let originalClasses = '';
+    
     try {
       const element = document.getElementById("invoice-preview");
       if (!element) {
         throw new Error("Invoice preview not found");
       }
 
-      // Create canvas from the invoice preview
-      const canvas = await html2canvas(element, {
+      // Create a temporary element for PDF generation with desktop layout
+      const tempElement = element.cloneNode(true) as HTMLElement;
+      tempElement.id = "temp-invoice-preview";
+      tempElement.style.position = "absolute";
+      tempElement.style.left = "-9999px";
+      tempElement.style.top = "0";
+      tempElement.style.width = "800px"; // Force desktop width
+      tempElement.style.zIndex = "-1";
+      
+      // Add to body temporarily
+      document.body.appendChild(tempElement);
+
+      // Force desktop layout on the temporary element
+      const mobileElements = tempElement.querySelectorAll('.block.md\\:hidden');
+      const desktopElements = tempElement.querySelectorAll('.hidden.md\\:block');
+      
+      mobileElements.forEach(el => {
+        el.classList.remove('block', 'md:hidden');
+        el.classList.add('hidden');
+      });
+      
+      desktopElements.forEach(el => {
+        el.classList.remove('hidden', 'md:block');
+        el.classList.add('block');
+      });
+
+      // Wait for DOM to update
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Create canvas from the temporary element
+      const canvas = await html2canvas(tempElement, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
+        width: 800,
+        height: tempElement.scrollHeight,
       });
+
+      // Remove temporary element
+      document.body.removeChild(tempElement);
 
       // Create PDF
       const imgData = canvas.toDataURL("image/png");
@@ -81,6 +117,15 @@ export function PDFGenerator({ invoice }: PDFGeneratorProps) {
         variant: "destructive",
       });
     } finally {
+      // Clean up any remaining temporary elements
+      try {
+        const tempElement = document.getElementById("temp-invoice-preview");
+        if (tempElement) {
+          document.body.removeChild(tempElement);
+        }
+      } catch (cleanupError) {
+        console.warn("Failed to cleanup temporary element:", cleanupError);
+      }
       setIsGenerating(false);
     }
   };

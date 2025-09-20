@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Upload, X } from "lucide-react";
+import { Plus, Trash2, Upload, X, PenTool } from "lucide-react";
 import { CURRENCY_OPTIONS, getCurrencySymbol } from "@/utils/currency";
+import { SignatureModal } from "@/components/SignatureModal";
 import type { Invoice, InvoiceItem } from "@shared/schema";
 
 interface InvoiceFormProps {
@@ -16,6 +17,7 @@ interface InvoiceFormProps {
 
 export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -48,6 +50,20 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
     if (fileInput) fileInput.value = '';
   };
 
+  const handleSignatureSave = (signature: { name: string; image: string }) => {
+    updateInvoice({
+      signatureName: signature.name,
+      signatureImage: signature.image,
+    });
+  };
+
+  const removeSignature = () => {
+    updateInvoice({
+      signatureName: undefined,
+      signatureImage: undefined,
+    });
+  };
+
   const updateInvoice = (updates: Partial<Invoice>) => {
     const updatedInvoice = { ...invoice, ...updates };
     
@@ -56,17 +72,19 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
     
     // Calculate discount amount
     let discountAmount = 0;
-    if (updatedInvoice.discountValue > 0) {
+    const discountValue = updatedInvoice.discountValue || 0;
+    if (discountValue > 0) {
       if (updatedInvoice.discountType === "percentage") {
-        discountAmount = (subtotal * updatedInvoice.discountValue) / 100;
+        discountAmount = (subtotal * discountValue) / 100;
       } else {
-        discountAmount = updatedInvoice.discountValue;
+        discountAmount = discountValue;
       }
     }
     
     // Calculate tax on amount after discount
     const taxableAmount = subtotal - discountAmount;
-    const taxAmount = (taxableAmount * updatedInvoice.taxRate) / 100;
+    const taxRate = updatedInvoice.taxRate || 0;
+    const taxAmount = (taxableAmount * taxRate) / 100;
     const total = taxableAmount + taxAmount;
     
     onInvoiceChange({
@@ -84,7 +102,9 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
     
     // Recalculate amount
     if ('quantity' in updates || 'rate' in updates) {
-      updatedItem.amount = updatedItem.quantity * updatedItem.rate;
+      const quantity = updatedItem.quantity || 0;
+      const rate = updatedItem.rate || 0;
+      updatedItem.amount = quantity * rate;
     }
     
     newItems[index] = updatedItem;
@@ -359,55 +379,126 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {invoice.items.map((item, index) => (
-            <div key={item.id} className="grid grid-cols-12 gap-2 items-end">
-              <div className="col-span-5">
-                <Label>Description</Label>
-                <Input
-                  value={item.description}
-                  onChange={(e) => updateItem(index, { description: e.target.value })}
-                  data-testid={`input-item-description-${index}`}
-                />
+            <div key={item.id} className="space-y-3 p-4 border rounded-lg bg-card">
+              {/* Mobile Layout - Stacked */}
+              <div className="block md:hidden space-y-3">
+                <div>
+                  <Label>Description</Label>
+                  <Input
+                    value={item.description}
+                    onChange={(e) => updateItem(index, { description: e.target.value })}
+                    placeholder="Enter item description"
+                    data-testid={`input-item-description-${index}`}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Qty</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={item.quantity || ''}
+                      placeholder="0"
+                      onChange={(e) => updateItem(index, { quantity: parseInt(e.target.value) || 1 })}
+                      onFocus={(e) => e.target.select()}
+                      data-testid={`input-item-quantity-${index}`}
+                    />
+                  </div>
+                  <div>
+                    <Label>Rate ({getCurrencySymbol(invoice.currency)})</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.rate || ''}
+                      placeholder="0"
+                      onChange={(e) => updateItem(index, { rate: parseFloat(e.target.value) || 0 })}
+                      onFocus={(e) => e.target.select()}
+                      data-testid={`input-item-rate-${index}`}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Amount ({getCurrencySymbol(invoice.currency)})</Label>
+                    <Input
+                      type="number"
+                      value={item.amount.toFixed(2)}
+                      readOnly
+                      className="bg-muted"
+                      data-testid={`text-item-amount-${index}`}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeItem(index)}
+                      className="w-full"
+                      data-testid={`button-remove-item-${index}`}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="col-span-2">
-                <Label>Qty</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={item.quantity}
-                  onChange={(e) => updateItem(index, { quantity: parseInt(e.target.value) || 1 })}
-                  data-testid={`input-item-quantity-${index}`}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Rate ({getCurrencySymbol(invoice.currency)})</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={item.rate}
-                  onChange={(e) => updateItem(index, { rate: parseFloat(e.target.value) || 0 })}
-                  data-testid={`input-item-rate-${index}`}
-                />
-              </div>
-              <div className="col-span-2">
-                <Label>Amount ({getCurrencySymbol(invoice.currency)})</Label>
-                <Input
-                  type="number"
-                  value={item.amount.toFixed(2)}
-                  readOnly
-                  className="bg-muted"
-                  data-testid={`text-item-amount-${index}`}
-                />
-              </div>
-              <div className="col-span-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeItem(index)}
-                  data-testid={`button-remove-item-${index}`}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+
+              {/* Desktop Layout - Grid */}
+              <div className="hidden md:grid grid-cols-12 gap-2 items-end">
+                <div className="col-span-5">
+                  <Label>Description</Label>
+                  <Input
+                    value={item.description}
+                    onChange={(e) => updateItem(index, { description: e.target.value })}
+                    data-testid={`input-item-description-${index}`}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Qty</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={item.quantity || ''}
+                    placeholder="0"
+                    onChange={(e) => updateItem(index, { quantity: parseInt(e.target.value) || 1 })}
+                    onFocus={(e) => e.target.select()}
+                    data-testid={`input-item-quantity-${index}`}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Rate ({getCurrencySymbol(invoice.currency)})</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.rate || ''}
+                    placeholder="0"
+                    onChange={(e) => updateItem(index, { rate: parseFloat(e.target.value) || 0 })}
+                    onFocus={(e) => e.target.select()}
+                    data-testid={`input-item-rate-${index}`}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label>Amount ({getCurrencySymbol(invoice.currency)})</Label>
+                  <Input
+                    type="number"
+                    value={item.amount.toFixed(2)}
+                    readOnly
+                    className="bg-muted"
+                    data-testid={`text-item-amount-${index}`}
+                  />
+                </div>
+                <div className="col-span-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeItem(index)}
+                    data-testid={`button-remove-item-${index}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
@@ -444,8 +535,10 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
               type="number"
               min="0"
               step="0.01"
-              value={invoice.discountValue}
+              value={invoice.discountValue || ''}
+              placeholder="0"
               onChange={(e) => updateInvoice({ discountValue: parseFloat(e.target.value) || 0 })}
+              onFocus={(e) => e.target.select()}
               data-testid="input-discount-value"
             />
           </div>
@@ -457,8 +550,10 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
               min="0"
               max="100"
               step="0.01"
-              value={invoice.taxRate}
+              value={invoice.taxRate || ''}
+              placeholder="0"
               onChange={(e) => updateInvoice({ taxRate: parseFloat(e.target.value) || 0 })}
+              onFocus={(e) => e.target.select()}
               data-testid="input-tax-rate"
             />
           </div>
@@ -531,6 +626,74 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Signature Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Digital Signature</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {invoice.signatureImage ? (
+            <div className="flex items-start gap-4">
+              <div className="flex-1">
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">Signature:</p>
+                      <img
+                        src={invoice.signatureImage}
+                        alt="Digital Signature"
+                        className="max-h-20 object-contain"
+                      />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium">{invoice.signatureName}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSignatureModalOpen(true)}
+                >
+                  <PenTool className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={removeSignature}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Remove
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+              <PenTool className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 mb-4">No signature added</p>
+              <Button onClick={() => setIsSignatureModalOpen(true)}>
+                <PenTool className="w-4 h-4 mr-2" />
+                Add Digital Signature
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Signature Modal */}
+      <SignatureModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        onSave={handleSignatureSave}
+        currentSignature={invoice.signatureImage ? {
+          name: invoice.signatureName || '',
+          image: invoice.signatureImage
+        } : undefined}
+      />
     </div>
   );
 }

@@ -40,6 +40,8 @@ const initialInvoice: Invoice = {
   total: 0,
   notes: "",
   terms: "",
+  signatureName: "",
+  signatureImage: "",
 };
 
 export default function InvoiceGenerator() {
@@ -50,8 +52,8 @@ export default function InvoiceGenerator() {
     <div className="min-h-screen bg-background">
       <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
         {/* Left Panel - Invoice Form */}
-        <div className="border-r bg-card">
-          <div className="p-4 border-b bg-muted/30">
+        <div className="border-r bg-card overflow-y-auto">
+          <div className="p-3 md:p-4 border-b bg-muted/30 sticky top-0 z-10">
             <h2 className="text-lg font-semibold text-foreground">Invoice Details</h2>
             <p className="text-sm text-muted-foreground">Fill in the form to create your invoice</p>
           </div>
@@ -62,8 +64,8 @@ export default function InvoiceGenerator() {
         </div>
 
         {/* Right Panel - Invoice Preview */}
-        <div className="bg-background">
-          <div className="p-4 border-b bg-muted/30">
+        <div className="bg-background overflow-y-auto">
+          <div className="p-3 md:p-4 border-b bg-muted/30 sticky top-0 z-10">
             <h2 className="text-lg font-semibold text-foreground">Live Preview</h2>
             <p className="text-sm text-muted-foreground">See how your invoice will look</p>
           </div>
