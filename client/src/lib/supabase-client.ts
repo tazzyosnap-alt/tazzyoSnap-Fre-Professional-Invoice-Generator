@@ -1,19 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Missing Supabase environment variables')
-}
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey)
+
+// Check if Supabase is properly configured
+export const isSupabaseConfigured = () => {
+  return import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+}
 
 // Invoice functions
 export const invoiceService = {
   // Save invoice to database
   async saveInvoice(invoice: any) {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Please set up environment variables.')
+    }
+
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser()

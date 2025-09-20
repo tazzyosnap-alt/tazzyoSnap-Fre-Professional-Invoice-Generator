@@ -4,6 +4,7 @@ import { useTheme } from "./ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { UserProfile } from "@/components/auth/UserProfile";
+import { isSupabaseConfigured } from "@/lib/supabase-client";
 import { useState } from "react";
 
 export function Header() {
@@ -36,17 +37,19 @@ export function Header() {
             )}
           </Button>
           
-          {user ? (
-            <UserProfile />
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsAuthModalOpen(true)}
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              Sign In
-            </Button>
+          {isSupabaseConfigured() && (
+            user ? (
+              <UserProfile />
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsAuthModalOpen(true)}
+              >
+                <LogIn className="w-4 h-4 mr-2" />
+                Sign In
+              </Button>
+            )
           )}
         </div>
         

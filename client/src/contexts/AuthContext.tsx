@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session, AuthError } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase-client'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase-client'
 
 interface AuthContextType {
   user: User | null
@@ -32,6 +32,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) {
+      setLoading(false)
+      return
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -52,6 +57,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   const signUp = async (email: string, password: string) => {
+    if (!isSupabaseConfigured()) {
+      return { error: new Error('Supabase is not configured') as AuthError }
+    }
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -63,6 +72,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const signIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured()) {
+      return { error: new Error('Supabase is not configured') as AuthError }
+    }
+    
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -71,11 +84,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const signOut = async () => {
+    if (!isSupabaseConfigured()) {
+      return { error: new Error('Supabase is not configured') as AuthError }
+    }
+    
     const { error } = await supabase.auth.signOut()
     return { error }
   }
 
   const resetPassword = async (email: string) => {
+    if (!isSupabaseConfigured()) {
+      return { error: new Error('Supabase is not configured') as AuthError }
+    }
+    
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     })
