@@ -53,6 +53,9 @@ export const invoiceSchema = z.object({
   // Items and totals
   items: z.array(invoiceItemSchema),
   subtotal: z.number().min(0),
+  discountType: z.enum(["percentage", "fixed"]).default("percentage"),
+  discountValue: z.number().min(0).default(0),
+  discountAmount: z.number().min(0).default(0),
   taxRate: z.number().min(0).max(100),
   taxAmount: z.number().min(0),
   total: z.number().min(0),

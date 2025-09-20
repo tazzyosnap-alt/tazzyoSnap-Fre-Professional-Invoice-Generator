@@ -53,12 +53,26 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
     
     // Recalculate totals
     const subtotal = updatedInvoice.items.reduce((sum, item) => sum + item.amount, 0);
-    const taxAmount = (subtotal * updatedInvoice.taxRate) / 100;
-    const total = subtotal + taxAmount;
+    
+    // Calculate discount amount
+    let discountAmount = 0;
+    if (updatedInvoice.discountValue > 0) {
+      if (updatedInvoice.discountType === "percentage") {
+        discountAmount = (subtotal * updatedInvoice.discountValue) / 100;
+      } else {
+        discountAmount = updatedInvoice.discountValue;
+      }
+    }
+    
+    // Calculate tax on amount after discount
+    const taxableAmount = subtotal - discountAmount;
+    const taxAmount = (taxableAmount * updatedInvoice.taxRate) / 100;
+    const total = taxableAmount + taxAmount;
     
     onInvoiceChange({
       ...updatedInvoice,
       subtotal,
+      discountAmount,
       taxAmount,
       total,
     });
@@ -407,6 +421,35 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
+            <Label htmlFor="discountType">Discount Type</Label>
+            <Select
+              value={invoice.discountType}
+              onValueChange={(value: "percentage" | "fixed") => updateInvoice({ discountType: value })}
+            >
+              <SelectTrigger data-testid="select-discount-type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="percentage">Percentage (%)</SelectItem>
+                <SelectItem value="fixed">Fixed Amount ({getCurrencySymbol(invoice.currency)})</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="discountValue">
+              Discount {invoice.discountType === "percentage" ? "(%)" : `(${getCurrencySymbol(invoice.currency)})`}
+            </Label>
+            <Input
+              id="discountValue"
+              type="number"
+              min="0"
+              step="0.01"
+              value={invoice.discountValue}
+              onChange={(e) => updateInvoice({ discountValue: parseFloat(e.target.value) || 0 })}
+              data-testid="input-discount-value"
+            />
+          </div>
+          <div>
             <Label htmlFor="taxRate">Tax Rate (%)</Label>
             <Input
               id="taxRate"
@@ -428,6 +471,17 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
               data-testid="text-subtotal"
             />
           </div>
+          {invoice.discountAmount > 0 && (
+            <div>
+              <Label>Discount Amount</Label>
+              <Input
+                value={`-${getCurrencySymbol(invoice.currency)}${invoice.discountAmount.toFixed(2)}`}
+                readOnly
+                className="bg-muted"
+                data-testid="text-discount-amount"
+              />
+            </div>
+          )}
           <div>
             <Label>Tax Amount</Label>
             <Input

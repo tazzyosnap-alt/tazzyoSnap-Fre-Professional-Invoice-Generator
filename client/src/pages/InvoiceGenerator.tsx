@@ -32,6 +32,9 @@ const initialInvoice: Invoice = {
     }
   ],
   subtotal: 0,
+  discountType: "percentage" as const,
+  discountValue: 0,
+  discountAmount: 0,
   taxRate: 0,
   taxAmount: 0,
   total: 0,

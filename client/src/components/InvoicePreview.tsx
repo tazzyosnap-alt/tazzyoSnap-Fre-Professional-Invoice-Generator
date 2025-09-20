@@ -106,6 +106,14 @@ export const InvoicePreview = forwardRef<HTMLDivElement, InvoicePreviewProps>(
                 <span className="text-muted-foreground">Subtotal:</span>
                 <span className="font-semibold text-foreground">{getCurrencySymbol(invoice.currency)}{invoice.subtotal.toFixed(2)}</span>
               </div>
+              {invoice.discountAmount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Discount {invoice.discountType === "percentage" ? `(${invoice.discountValue}%)` : ""}:
+                  </span>
+                  <span className="font-semibold text-foreground">-{getCurrencySymbol(invoice.currency)}{invoice.discountAmount.toFixed(2)}</span>
+                </div>
+              )}
               {invoice.taxRate > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tax ({invoice.taxRate}%):</span>
