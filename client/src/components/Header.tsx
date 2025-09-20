@@ -4,7 +4,7 @@ import { useTheme } from "./ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { UserProfile } from "@/components/auth/UserProfile";
-import { isSupabaseConfigured } from "@/lib/supabase-client";
+import { isSupabaseEnabled } from "@/lib/supabase-client";
 import { useState } from "react";
 
 export function Header() {
@@ -37,7 +37,7 @@ export function Header() {
             )}
           </Button>
           
-          {isSupabaseConfigured() && (
+          {isSupabaseEnabled() && (
             user ? (
               <UserProfile />
             ) : (

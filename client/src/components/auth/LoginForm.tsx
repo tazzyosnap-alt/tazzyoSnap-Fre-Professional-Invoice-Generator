@@ -28,8 +28,8 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
       
       if (error) {
         toast({
-          title: "Login Failed",
-          description: error.message,
+          title: "Demo Mode",
+          description: "This is a demo version. To enable authentication, please set up Supabase.",
           variant: "destructive",
         })
       } else {

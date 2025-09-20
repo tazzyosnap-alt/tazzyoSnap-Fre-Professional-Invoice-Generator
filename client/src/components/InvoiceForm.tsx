@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Trash2, Upload, X, PenTool, Save } from "lucide-react";
 import { CURRENCY_OPTIONS, getCurrencySymbol } from "@/utils/currency";
 import { SignatureModal } from "@/components/SignatureModal";
-import { invoiceService, isSupabaseConfigured } from "@/lib/supabase-client";
+import { invoiceService, isSupabaseEnabled } from "@/lib/supabase-client";
 import { useToast } from "@/hooks/use-toast";
 import type { Invoice, InvoiceItem } from "@shared/schema";
 
@@ -89,8 +89,8 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
     } catch (error) {
       console.error("Error saving invoice:", error);
       toast({
-        title: "Error",
-        description: "Failed to save invoice. Please try again.",
+        title: "Demo Mode",
+        description: "This is a demo version. To save invoices permanently, please set up Supabase.",
         variant: "destructive",
       });
     } finally {
@@ -167,7 +167,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <CardTitle>Invoice Details</CardTitle>
-            {isSupabaseConfigured() && (
+            {isSupabaseEnabled() && (
               <Button 
                 onClick={saveInvoice} 
                 disabled={isSaving || !invoice.invoiceNumber}

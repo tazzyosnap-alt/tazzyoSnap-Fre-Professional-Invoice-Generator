@@ -47,8 +47,8 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       
       if (error) {
         toast({
-          title: "Registration Failed",
-          description: error.message,
+          title: "Demo Mode",
+          description: "This is a demo version. To enable authentication, please set up Supabase.",
           variant: "destructive",
         })
       } else {
