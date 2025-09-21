@@ -16,6 +16,51 @@ export const isSupabaseEnabled = () => {
   return isSupabaseConfigured() // Only show when properly configured
 }
 
+// User management functions
+export const userService = {
+  // Create or update user profile
+  async createUserProfile(userId: string, email: string) {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase is not configured. Please set up environment variables.')
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .upsert({
+          id: userId,
+          email: email,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error creating user profile:', error)
+      throw error
+    }
+  },
+
+  // Get user profile
+  async getUserProfile(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+      throw error
+    }
+  }
+}
+
 // Invoice functions
 export const invoiceService = {
   // Save invoice to database

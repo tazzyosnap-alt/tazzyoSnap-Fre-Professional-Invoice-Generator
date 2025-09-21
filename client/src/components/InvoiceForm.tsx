@@ -10,6 +10,7 @@ import { CURRENCY_OPTIONS, getCurrencySymbol } from "@/utils/currency";
 import { SignatureModal } from "@/components/SignatureModal";
 import { invoiceService, isSupabaseEnabled } from "@/lib/supabase-client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Invoice, InvoiceItem } from "@shared/schema";
 
 interface InvoiceFormProps {
@@ -22,6 +23,7 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -79,12 +81,30 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
       return;
     }
 
+    if (!isSupabaseEnabled()) {
+      toast({
+        title: "Save Not Available",
+        description: "Please configure Supabase to save invoices to the cloud.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please sign in to save your invoices to the cloud.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       await invoiceService.saveInvoice(invoice);
       toast({
         title: "Invoice Saved",
-        description: "Your invoice has been saved successfully.",
+        description: "Your invoice has been saved to the cloud successfully.",
       });
     } catch (error) {
       console.error("Error saving invoice:", error);
@@ -170,11 +190,12 @@ export function InvoiceForm({ invoice, onInvoiceChange }: InvoiceFormProps) {
             {isSupabaseEnabled() && (
               <Button 
                 onClick={saveInvoice} 
-                disabled={isSaving || !invoice.invoiceNumber}
+                disabled={isSaving || !invoice.invoiceNumber || authLoading}
                 size="sm"
+                variant={user ? "default" : "outline"}
               >
                 <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Saving..." : "Save Invoice"}
+                {isSaving ? "Saving..." : user ? "Save to Cloud" : "Login to Save"}
               </Button>
             )}
           </CardHeader>

@@ -44,11 +44,16 @@ const mockInvoice: Invoice = {
     }
   ],
   subtotal: 5675.00,
+  discountType: "percentage",
+  discountValue: 0,
+  discountAmount: 0,
   taxRate: 8.5,
   taxAmount: 482.38,
   total: 6157.38,
   notes: "Thank you for choosing TazzyoSnap Solutions. We appreciate your business and look forward to working with you again.",
-  terms: "Payment due within 30 days. Late payments may incur a 1.5% monthly service charge."
+  terms: "Payment due within 30 days. Late payments may incur a 1.5% monthly service charge.",
+  signatureName: "",
+  signatureImage: ""
 };
 
 export default function InvoicePreviewExample() {

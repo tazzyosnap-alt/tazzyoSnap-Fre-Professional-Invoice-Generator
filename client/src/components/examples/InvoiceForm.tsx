@@ -38,11 +38,16 @@ const mockInvoice: Invoice = {
     }
   ],
   subtotal: 4700.00,
+  discountType: "percentage",
+  discountValue: 0,
+  discountAmount: 0,
   taxRate: 8.5,
   taxAmount: 399.50,
   total: 5099.50,
   notes: "Thank you for your business!",
-  terms: "Payment due within 30 days."
+  terms: "Payment due within 30 days.",
+  signatureName: "",
+  signatureImage: ""
 };
 
 export default function InvoiceFormExample() {

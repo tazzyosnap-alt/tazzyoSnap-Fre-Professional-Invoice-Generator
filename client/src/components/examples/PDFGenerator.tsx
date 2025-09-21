@@ -31,11 +31,16 @@ const mockInvoice: Invoice = {
     }
   ],
   subtotal: 3000.00,
+  discountType: "percentage",
+  discountValue: 0,
+  discountAmount: 0,
   taxRate: 8.5,
   taxAmount: 255.00,
   total: 3255.00,
   notes: "Thank you for your business!",
-  terms: "Payment due within 30 days."
+  terms: "Payment due within 30 days.",
+  signatureName: "",
+  signatureImage: ""
 };
 
 export default function PDFGeneratorExample() {
