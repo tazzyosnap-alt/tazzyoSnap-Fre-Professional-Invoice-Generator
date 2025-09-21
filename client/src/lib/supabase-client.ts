@@ -1,14 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey)
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  return import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY
+  return process.env.VITE_SUPABASE_URL && process.env.VITE_SUPABASE_ANON_KEY
 }
 
 // Check if Supabase features should be enabled
